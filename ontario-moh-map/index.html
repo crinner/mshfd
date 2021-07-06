@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <style>
+        #map {
+            width: 640px;
+            height: 480px;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <h2>COVID-19 --- Who's in Charge?</h2>
+        <h3>Find your Medical Officer of Health and check their qualifications.</h3>
+        <p>Green = specialization in public health or community health; yellow = not specified; red = other.</p>
+        <div id="map">
+        </div>
+        <p>Information collected from 
+        Ontario Ministry of Health, <a href="https://www.health.gov.on.ca/en/common/system/services/phu/locations.aspx" target="_blank">https://www.health.gov.on.ca/en/common/system/services/phu/locations.aspx</a>, 
+        <br>public health unit (PHU) web sites, and 
+        College of Physicians and Surgeons of Ontario, <a href="https://doctors.cpso.on.ca/" target="_blank">https://doctors.cpso.on.ca/</a>, 
+        <br>as of 4 July 2021 by Claus Rinner.</p>
+        <p>THIS INFORMATION IS PROVIDED "AS IS" WITH NO WARRANTIES REGARDING ITS ACCURACY OR COMPLETENESS.</p>
+
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/phuofficerqualifications_1.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:10, minZoom:4
+        }).fitBounds([[35.86696748328685,-107.48146737818058],[57.65392189932813,-61.88945888014799]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            map.setMaxBounds(map.getBounds());
+        }
+        map.createPane('pane_OpenStreetMapmonochrome_0');
+        map.getPane('pane_OpenStreetMapmonochrome_0').style.zIndex = 400;
+        var layer_OpenStreetMapmonochrome_0 = L.tileLayer('http://a.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+            pane: 'pane_OpenStreetMapmonochrome_0',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        layer_OpenStreetMapmonochrome_0;
+        map.addLayer(layer_OpenStreetMapmonochrome_0);
+        function pop_phuofficerqualifications_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">PHU_ID</th>\
+                        <td>' + (feature.properties['PHU_ID'] !== null ? autolinker.link(feature.properties['PHU_ID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">NAME_ENG</th>\
+                        <td>' + (feature.properties['NAME_ENG'] !== null ? autolinker.link(feature.properties['NAME_ENG'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">NAME_FR</th>\
+                        <td>' + (feature.properties['NAME_FR'] !== null ? autolinker.link(feature.properties['NAME_FR'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">MOH_NAME</th>\
+                        <td>' + (feature.properties['MOH_NAME'] !== null ? autolinker.link(feature.properties['MOH_NAME'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">CPSO#</th>\
+                        <td>' + (feature.properties['CPSO_NUM'] !== null ? autolinker.link(feature.properties['CPSO_NUM'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">SPECIALIZATION</th>\
+                        <td>' + (feature.properties['SPECIALIZA'] !== null ? autolinker.link(feature.properties['SPECIALIZA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">PHU_WEBSITE</th>\
+                        <td>' + (feature.properties['PHU_WEBSIT'] !== null ? autolinker.link(feature.properties['PHU_WEBSIT'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_phuofficerqualifications_1_0(feature) {
+            switch(String(feature.properties['COLOURCODE'])) {
+                case 'green':
+                    return {
+                pane: 'pane_phuofficerqualifications_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.33)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(51,160,44,0.33)',
+                interactive: true,
+            }
+                    break;
+                case 'red':
+                    return {
+                pane: 'pane_phuofficerqualifications_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.33)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(227,26,28,0.33)',
+                interactive: true,
+            }
+                    break;
+                case 'yellow':
+                    return {
+                pane: 'pane_phuofficerqualifications_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.33)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,204,51,0.33)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_phuofficerqualifications_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.33)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,255,0.33)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_phuofficerqualifications_1');
+        map.getPane('pane_phuofficerqualifications_1').style.zIndex = 401;
+        map.getPane('pane_phuofficerqualifications_1').style['mix-blend-mode'] = 'normal';
+        var layer_phuofficerqualifications_1 = new L.geoJson(json_phuofficerqualifications_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_phuofficerqualifications_1',
+            layerName: 'layer_phuofficerqualifications_1',
+            pane: 'pane_phuofficerqualifications_1',
+            onEachFeature: pop_phuofficerqualifications_1,
+            style: style_phuofficerqualifications_1_0,
+        });
+        bounds_group.addLayer(layer_phuofficerqualifications_1);
+        map.addLayer(layer_phuofficerqualifications_1);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: layer_phuofficerqualifications_1,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'NAME_ENG'}));
+        document.getElementsByClassName('search-button')[0].className +=
+         ' fa fa-binoculars';
+        </script>
+    </body>
+</html>
